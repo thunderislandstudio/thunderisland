@@ -157,63 +157,43 @@ window.addEventListener("load", () => {
         return "Outside all defined tiers";
     }
 
-    function locateAddress() {
-        const q = addrInput.value.trim();
-        if (!q) return;
+// Call your Cloudflare Worker instead of Nominatim
+const workerUrl =
+    "https://tis-geocode.ken-fdb.workers.dev/" +
+    "?q=" + encodeURIComponent(q);
 
-        console.log("Lookup clicked with query:", q);
-        addrResult.textContent = "Looking up address…";
+fetch(workerUrl)
+    .then(res => res.json())
+    .then(data => {
+        console.log("Geocode data from Worker:", data);
+        if (data.error) {
+            addrResult.textContent = "Address not found or geocoding failed.";
+            return;
+        }
 
-        // Nominatim geocoding (OpenStreetMap), biased to Florida-ish box
-        const url =
-            "https://nominatim.openstreetmap.org/search" +
-            "?format=json" +
-            "&addressdetails=1" +
-            "&limit=1" +
-            "&countrycodes=us" +
-            // Florida-ish bounding box: left,top,right,bottom (lon,lat)
-            "&viewbox=" + encodeURIComponent("-88,31.5,-79,24") +
-            "&bounded=1" +
-            "&q=" + encodeURIComponent(q);
+        const lat = data.lat;
+        const lon = data.lon;
+        const formatted = data.formatted || q;
 
-        fetch(url, {
-            headers: {
-                "Accept-Language": "en",
-                "User-Agent": "thunderislandstudio-map (personal use)"
-            }
-        })
-            .then(res => res.json())
-            .then(results => {
-                console.log("Geocode results:", results);
-                if (!results || results.length === 0) {
-                    addrResult.textContent =
-                        "Address not found. Try '1234 Main St, City, FL'.";
-                    return;
-                }
+        // Drop / move marker
+        if (searchMarker) {
+            map.removeLayer(searchMarker);
+        }
+        searchMarker = L.marker([lat, lon]).addTo(map);
 
-                const r = results[0];
-                const lat = parseFloat(r.lat);
-                const lon = parseFloat(r.lon);
+        const tierText = classifyTier(lat, lon);
 
-                // Drop / move marker
-                if (searchMarker) {
-                    map.removeLayer(searchMarker);
-                }
-                searchMarker = L.marker([lat, lon]).addTo(map);
+        searchMarker
+            .bindPopup(`${formatted}<br><strong>${tierText}</strong>`)
+            .openPopup();
 
-                const tierText = classifyTier(lat, lon);
-
-                searchMarker
-                    .bindPopup(`${q}<br><strong>${tierText}</strong>`)
-                    .openPopup();
-
-                map.setView([lat, lon], 9);
-                addrResult.textContent = tierText;
-            })
-            .catch(err => {
-                console.error("Geocoding error:", err);
-                addrResult.textContent = "Error looking up address.";
-            });
+        map.setView([lat, lon], 9);
+        addrResult.textContent = tierText;
+    })
+    .catch(err => {
+        console.error("Geocoding error via Worker:", err);
+        addrResult.textContent = "Error looking up address.";
+    });
     }
 
     if (addrBtn) {
