@@ -156,31 +156,22 @@ window.addEventListener("load", () => {
         return "Outside all defined tiers";
     }
 
-    function locateAddress() {
-        const q = addrInput.value.trim();
-        if (!q) return;
-
-        console.log("Lookup clicked with query:", q);
-        addrResult.textContent = "Looking up address…";
-
-        // Nominatim geocoding (OpenStreetMap)
-        const url =
-            "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1" +
-            "&limit=1&countrycodes=us&q=" +
-            encodeURIComponent(q);
-
-        fetch(url, {
-            headers: {
-                "Accept-Language": "en"
-            }
-        })
+const url =
+  "https://nominatim.openstreetmap.org/search?format=json" +
+  "&addressdetails=1" +
+  "&limit=1" +
+  "&countrycodes=us" +
+  // Florida-ish bounding box: west, south, east, north
+  "&viewbox=" + encodeURIComponent("-88,24,-79,32") +
+  "&bounded=1" +
+  "&q=" + encodeURIComponent(q);
             .then(res => res.json())
-            .then(results => {
-                console.log("Geocode results:", results);
-                if (!results || results.length === 0) {
-                    addrResult.textContent = "Address not found.";
-                    return;
-                }
+.then(results => {
+    console.log("Geocode results:", results);
+    if (!results || results.length === 0) {
+        addrResult.textContent = "Address not found. Try '1234 Main St, City, FL'.";
+        return;
+    }
 
                 const r = results[0];
                 const lat = parseFloat(r.lat);
