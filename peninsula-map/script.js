@@ -1,230 +1,101 @@
-window.addEventListener("load", () => {
-    console.log("Map script loaded");
+// Initialize map centered on Florida
+const map = L.map("map", {
+    zoomControl: true,
+    minZoom: 5,
+    maxZoom: 15
+}).setView([28.4, -82.5], 6);
 
-    // Initialize map centered on Florida
-    const map = L.map("map", {
-        zoomControl: true,
-        minZoom: 5,
-        maxZoom: 15
-    }).setView([28.4, -82.5], 6);
-
-    // Carto Light basemap
-    L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-        {
-            attribution: '&copy; OpenStreetMap, &copy; CARTO',
-            maxZoom: 19
-        }
-    ).addTo(map);
-
-    // Layer dictionary and raw GeoJSON for Turf
-    const layers = {
-        tier1: null,
-        tier2: null,
-        tier3: null,
-        tier4: null,
-        nogopub30: null
-    };
-
-    const layerData = {};
-
-    // LSU colors
-    const LSU_PURPLE = "#461D7C";
-    const LSU_GOLD   = "#FDD023";
-
-    // Helper to load a GeoJSON layer, with control over initial visibility
-    function loadLayer(key, url, style, startVisible = true) {
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                layerData[key] = data; // keep raw data for Turf
-                const layer = L.geoJSON(data, { style });
-                layers[key] = layer;
-
-                if (startVisible) {
-                    layer.addTo(map);
-                }
-            })
-            .catch(err => {
-                console.error(`Error loading layer ${key} from ${url}:`, err);
-            });
+// Carto Light basemap
+L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+    {
+        attribution: '&copy; OpenStreetMap, &copy; CARTO',
+        maxZoom: 19
     }
+).addTo(map);
 
-    // ---- Load all layers ----
+// Layer dictionary
+const layers = {
+    tier1: null,
+    tier2: null,
+    tier3: null,
+    tier4: null,
+    nogopub30: null
+};
 
-    // Tier 1: Publix ≤15 / WF ≤30  (default ON)
-    loadLayer("tier1", "data/GoZone_P15_WF30.geojson", {
-        color: LSU_PURPLE,
-        fillColor: LSU_PURPLE,
-        fillOpacity: 0.28,
-        weight: 2
-    }, true);
+// LSU colors
+const LSU_PURPLE = "#461D7C";
+const LSU_GOLD   = "#FDD023";
 
-    // Tier 2: Publix ≤25 / WF ≤50  (default ON)
-    loadLayer("tier2", "data/GoZone_P25_WF50.geojson", {
-        color: LSU_GOLD,
-        fillColor: LSU_GOLD,
-        fillOpacity: 0.32,
-        weight: 2
-    }, true);
+// Helper to load a GeoJSON layer, with control over initial visibility
+function loadLayer(key, url, style, startVisible = true) {
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            const layer = L.geoJSON(data, { style });
+            layers[key] = layer;
 
-    // Tier 3: Publix ≤30 / WF ≤60  (default ON)
-    loadLayer("tier3", "data/GoZone_P30_WF60.geojson", {
-        color: "#9D7BC0", // lighter purple
-        fillColor: "#9D7BC0",
-        fillOpacity: 0.28,
-        weight: 2
-    }, true);
-
-    // Publix ≤20 / WF ≤60 (extra tier, default OFF)
-    loadLayer("tier4", "data/GoZone_P20_WF60.geojson", {
-        color: "#FFB733",
-        fillColor: "#FFB733",
-        fillOpacity: 0.28,
-        weight: 2
-    }, false);
-
-    // No-Go: not within 30 miles of Publix (default OFF)
-    loadLayer("nogopub30", "data/NoGo_not_within_30mi_Publix.geojson", {
-        color: "#FF0033",
-        fillColor: "#FF0033",
-        fillOpacity: 0.15,
-        weight: 1
-    }, false);
-
-    // Checkbox handlers
-    document.querySelectorAll(".layer-toggle").forEach(cb => {
-        cb.addEventListener("change", () => {
-            const key = cb.dataset.layer;
-            const layer = layers[key];
-            if (!layer) return; // layer might not be loaded yet
-
-            if (cb.checked) {
+            if (startVisible) {
                 layer.addTo(map);
-            } else {
-                map.removeLayer(layer);
-            }
-        });
-    });
-
-    // ---- Address search / geocoding ----
-
-    const addrInput   = document.getElementById("addr-input");
-    const addrBtn     = document.getElementById("addr-btn");
-    const addrResult  = document.getElementById("addr-result");
-
-    console.log("addrInput:", !!addrInput, "addrBtn:", !!addrBtn);
-
-    let searchMarker = null;
-
-    // Simple helper: check if point is inside any feature in given layerData
-    function pointInLayer(layerKey, pt) {
-        const data = layerData[layerKey];
-        if (!data || !data.features) return false;
-
-        return data.features.some(f => {
-            try {
-                return turf.booleanPointInPolygon(pt, f);
-            } catch {
-                return false;
-            }
-        });
-    }
-
-    function classifyTier(lat, lon) {
-        if (typeof turf === "undefined") {
-            return "Located (tier classification unavailable)";
-        }
-
-        const pt = turf.point([lon, lat]);
-
-        if (pointInLayer("tier1", pt)) {
-            return "Tier 1 (Publix ≤15 mi & WF ≤30 mi)";
-        }
-        if (pointInLayer("tier2", pt)) {
-            return "Tier 2 (Publix ≤25 mi & WF ≤50 mi)";
-        }
-        if (pointInLayer("tier3", pt)) {
-            return "Tier 3 (Publix ≤30 mi & WF ≤60 mi)";
-        }
-        if (pointInLayer("tier4", pt)) {
-            return "Publix ≤20 mi & WF ≤60 mi (extra tier)";
-        }
-        if (pointInLayer("nogopub30", pt)) {
-            return "No-Go: more than 30 miles from any Publix";
-        }
-
-        return "Outside all defined tiers";
-    }
-
-    function locateAddress() {
-        const q = addrInput.value.trim();
-        if (!q) return;
-
-        console.log("Lookup clicked with query:", q);
-        addrResult.textContent = "Looking up address…";
-
-        // Nominatim geocoding (OpenStreetMap), biased to Florida-ish box
-        const url =
-            "https://nominatim.openstreetmap.org/search" +
-            "?format=json" +
-            "&addressdetails=1" +
-            "&limit=1" +
-            "&countrycodes=us" +
-            // Florida-ish bounding box: left,top,right,bottom (lon,lat)
-            "&viewbox=" + encodeURIComponent("-88,31.5,-79,24") +
-            "&bounded=1" +
-            "&q=" + encodeURIComponent(q);
-
-        fetch(url, {
-            headers: {
-                "Accept-Language": "en",
-                "User-Agent": "thunderislandstudio-map (personal use)"
             }
         })
-            .then(res => res.json())
-            .then(results => {
-                console.log("Geocode results:", results);
-                if (!results || results.length === 0) {
-                    addrResult.textContent =
-                        "Address not found. Try '1234 Main St, City, FL'.";
-                    return;
-                }
-
-                const r = results[0];
-                const lat = parseFloat(r.lat);
-                const lon = parseFloat(r.lon);
-
-                // Drop / move marker
-                if (searchMarker) {
-                    map.removeLayer(searchMarker);
-                }
-                searchMarker = L.marker([lat, lon]).addTo(map);
-
-                const tierText = classifyTier(lat, lon);
-
-                searchMarker
-                    .bindPopup(`${q}<br><strong>${tierText}</strong>`)
-                    .openPopup();
-
-                map.setView([lat, lon], 9);
-                addrResult.textContent = tierText;
-            })
-            .catch(err => {
-                console.error("Geocoding error:", err);
-                addrResult.textContent = "Error looking up address.";
-            });
-    }
-
-    if (addrBtn) {
-        addrBtn.addEventListener("click", locateAddress);
-    }
-
-    if (addrInput) {
-        addrInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                locateAddress();
-            }
+        .catch(err => {
+            console.error(`Error loading layer ${key} from ${url}:`, err);
         });
-    }
+}
+
+// Load all layers
+// Tier 1: Publix ≤15 / WF ≤30  (default ON)
+loadLayer("tier1", "data/GoZone_P15_WF30.geojson", {
+    color: LSU_PURPLE,
+    fillColor: LSU_PURPLE,
+    fillOpacity: 0.28,
+    weight: 2
+}, true);
+
+// Tier 2: Publix ≤25 / WF ≤50  (default ON)
+loadLayer("tier2", "data/GoZone_P25_WF50.geojson", {
+    color: LSU_GOLD,
+    fillColor: LSU_GOLD,
+    fillOpacity: 0.32,
+    weight: 2
+}, true);
+
+// Tier 3: Publix ≤30 / WF ≤60  (default ON)
+loadLayer("tier3", "data/GoZone_P30_WF60.geojson", {
+    color: "#9D7BC0", // lighter purple
+    fillColor: "#9D7BC0",
+    fillOpacity: 0.28,
+    weight: 2
+}, true);
+
+// Publix ≤20 / WF ≤60 (extra tier, default OFF)
+loadLayer("tier4", "data/GoZone_P20_WF60.geojson", {
+    color: "#FFB733",
+    fillColor: "#FFB733",
+    fillOpacity: 0.28,
+    weight: 2
+}, false);
+
+// No-Go: not within 30 miles of Publix (default OFF)
+loadLayer("nogopub30", "data/NoGo_not_within_30mi_Publix.geojson", {
+    color: "#FF0033",
+    fillColor: "#FF0033",
+    fillOpacity: 0.15,
+    weight: 1
+}, false);
+
+// Checkbox handlers
+document.querySelectorAll(".layer-toggle").forEach(cb => {
+    cb.addEventListener("change", () => {
+        const key = cb.dataset.layer;
+        const layer = layers[key];
+        if (!layer) return; // layer might not be loaded yet
+
+        if (cb.checked) {
+            layer.addTo(map);
+        } else {
+            map.removeLayer(layer);
+        }
+    });
 });
