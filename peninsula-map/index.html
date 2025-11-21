@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Florida Go Zones</title>
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <div id="controls">
+        <h3>Zones</h3>
+
+        <label><input type="checkbox" class="layer-toggle" data-layer="tier1" checked>
+            Tier 1 (Publix ≤15 / WF ≤30)
+        </label>
+
+        <label><input type="checkbox" class="layer-toggle" data-layer="tier2" checked>
+            Tier 2 (Publix ≤25 / WF ≤50)
+        </label>
+
+        <label><input type="checkbox" class="layer-toggle" data-layer="tier3" checked>
+            Tier 3 (Publix ≤30 / WF ≤60)
+        </label>
+
+        <label><input type="checkbox" class="layer-toggle" data-layer="tier4">
+            Publix ≤20 / WF ≤60
+        </label>
+
+        <label><input type="checkbox" class="layer-toggle" data-layer="nogopub30">
+            No-Go (Publix ≥30 miles away)
+        </label>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
