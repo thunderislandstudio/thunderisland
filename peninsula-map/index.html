@@ -12,6 +12,9 @@
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Turf.js for point-in-polygon tier classification -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 </head>
 
 <body>
@@ -39,6 +42,19 @@
         <label><input type="checkbox" class="layer-toggle" data-layer="nogopub30">
             No-Go (Publix ≥30 miles away)
         </label>
+
+        <hr />
+
+        <div id="search">
+            <div class="search-label">Address lookup</div>
+            <input
+                type="text"
+                id="addr-input"
+                placeholder="123 Main St, Gainesville FL"
+            />
+            <button id="addr-btn">Locate</button>
+            <div id="addr-result"></div>
+        </div>
     </div>
 
     <script src="script.js"></script>
