@@ -50,7 +50,8 @@ window.addEventListener("load", () => {
             });
     }
 
-    // Load all layers
+    // ---- Load all layers ----
+
     // Tier 1: Publix ≤15 / WF ≤30  (default ON)
     loadLayer("tier1", "data/GoZone_P15_WF30.geojson", {
         color: LSU_PURPLE,
@@ -156,22 +157,39 @@ window.addEventListener("load", () => {
         return "Outside all defined tiers";
     }
 
-const url =
-  "https://nominatim.openstreetmap.org/search?format=json" +
-  "&addressdetails=1" +
-  "&limit=1" +
-  "&countrycodes=us" +
-  // Florida-ish bounding box: west, south, east, north
-  "&viewbox=" + encodeURIComponent("-88,24,-79,32") +
-  "&bounded=1" +
-  "&q=" + encodeURIComponent(q);
+    function locateAddress() {
+        const q = addrInput.value.trim();
+        if (!q) return;
+
+        console.log("Lookup clicked with query:", q);
+        addrResult.textContent = "Looking up address…";
+
+        // Nominatim geocoding (OpenStreetMap), biased to Florida-ish box
+        const url =
+            "https://nominatim.openstreetmap.org/search" +
+            "?format=json" +
+            "&addressdetails=1" +
+            "&limit=1" +
+            "&countrycodes=us" +
+            // Florida-ish bounding box: left,top,right,bottom (lon,lat)
+            "&viewbox=" + encodeURIComponent("-88,31.5,-79,24") +
+            "&bounded=1" +
+            "&q=" + encodeURIComponent(q);
+
+        fetch(url, {
+            headers: {
+                "Accept-Language": "en",
+                "User-Agent": "thunderislandstudio-map (personal use)"
+            }
+        })
             .then(res => res.json())
-.then(results => {
-    console.log("Geocode results:", results);
-    if (!results || results.length === 0) {
-        addrResult.textContent = "Address not found. Try '1234 Main St, City, FL'.";
-        return;
-    }
+            .then(results => {
+                console.log("Geocode results:", results);
+                if (!results || results.length === 0) {
+                    addrResult.textContent =
+                        "Address not found. Try '1234 Main St, City, FL'.";
+                    return;
+                }
 
                 const r = results[0];
                 const lat = parseFloat(r.lat);
