@@ -1,4 +1,4 @@
-// Multi-zone map: Publix ≤15/WF ≤50, Publix ≤25/WF ≤50, WF ≤60
+// Florida Go Zones: Publix / Whole Foods distance shells
 
 window.addEventListener("load", () => {
   console.log("Zone map script loaded");
@@ -16,14 +16,15 @@ window.addEventListener("load", () => {
     maxZoom: 19
   }).addTo(map);
 
-  // Layer dictionary
+  // Layers registry
   const layers = {
-    p15wf50: null,
-    p25wf50: null,
-    wf60: null
+    publix15: null,
+    publix25: null,
+    wf30: null,
+    wf50: null
   };
 
-  // LSU-ish colors
+  // Colors
   const LSU_PURPLE = "#461D7C";
   const LSU_GOLD = "#FDD023";
 
@@ -52,44 +53,54 @@ window.addEventListener("load", () => {
       });
   }
 
-  // === Load your three zones ===
-  // Make sure these filenames exist in /data on the deployed site
-
-  // Publix ≤15 & WF ≤50
+  // Publix ≤15 mi
   loadLayer(
-    "p15wf50",
-    "data/GoZone_P15_WF50.geojson",
+    "publix15",
+    "data/Publix_15mi.geojson",
     {
-      color: LSU_PURPLE,
-      fillColor: LSU_PURPLE,
-      fillOpacity: 0.28,
+      color: "#ff0000",
+      fillColor: "#ff0000",
+      fillOpacity: 0.5,
       weight: 2
     },
     true
   );
 
-  // Publix ≤25 & WF ≤50
+  // Publix ≤25 mi (slightly lighter purple)
   loadLayer(
-    "p25wf50",
-    "data/GoZone_P25_WF50.geojson",
+    "publix25",
+    "data/Publix_25mi.geojson",
     {
-      color: LSU_GOLD,
-      fillColor: LSU_GOLD,
-      fillOpacity: 0.32,
+      color: "#ff0000",
+      fillColor: "#ff0000",
+      fillOpacity: 0.3,
       weight: 2
     },
     true
   );
 
-  // Whole Foods ≤60 regardless of Publix
+  // Whole Foods ≤30 mi
   loadLayer(
-    "wf60",
-    "data/WF_Within60.geojson",
+    "wf30",
+    "data/WF_30mi.geojson",
     {
-      color: "#9D7BC0",
-      fillColor: "#9D7BC0",
-      fillOpacity: 0.18,
-      weight: 1.5
+      color: "#0000ff",
+      fillColor: "#0000ff",
+      fillOpacity: 0.50,
+      weight: 2
+    },
+    false
+  );
+
+  // Whole Foods ≤50 mi (lighter halo)
+  loadLayer(
+    "wf50",
+    "data/WF_50mi.geojson",
+    {
+      color: "#0000ff",
+      fillColor: "#0000ff",
+      fillOpacity: 0.3,
+      weight: 2
     },
     false
   );
