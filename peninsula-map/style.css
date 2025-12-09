@@ -1,46 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Florida Go Zones</title>
-    <link rel="stylesheet" href="style.css" />
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
 
-    <!-- Leaflet -->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-</head>
+#map {
+  height: 100vh;
+  width: 100%;
+}
 
-<body>
-    <div id="map"></div>
+#controls {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  max-width: 260px;
+}
 
-    <div id="controls">
-        <h3>Zones</h3>
+#controls h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+}
 
-        <label><input type="checkbox" class="layer-toggle" data-layer="tier1" checked>
-            Tier 1 (Publix ≤15 / WF ≤30)
-        </label>
+#controls label {
+  display: block;
+  margin: 6px 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
 
-        <label><input type="checkbox" class="layer-toggle" data-layer="tier2" checked>
-            Tier 2 (Publix ≤25 / WF ≤50)
-        </label>
-
-        <label><input type="checkbox" class="layer-toggle" data-layer="tier3" checked>
-            Tier 3 (Publix ≤30 / WF ≤60)
-        </label>
-
-        <label><input type="checkbox" class="layer-toggle" data-layer="tier4">
-            Publix ≤20 / WF ≤60
-        </label>
-
-        <label><input type="checkbox" class="layer-toggle" data-layer="nogopub30">
-            No-Go (Publix ≥30 miles from Publix)
-        </label>
-    </div>
-
-    <script src="script.js?v=RESET1"></script>
-</body>
-</html>
+.layer-toggle {
+  margin-right: 6px;
+}

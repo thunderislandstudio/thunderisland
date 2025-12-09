@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Florida Go Zones</title>
+
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Leaflet -->
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
   />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body>
@@ -21,32 +23,29 @@
     <h3>Zones</h3>
 
     <label>
-      <input type="checkbox" class="layer-toggle" data-layer="tier1" checked>
-      Tier 1 (Publix ≤15 / WF ≤30)
+      <input type="checkbox" class="layer-toggle" data-layer="p15wf50" checked>
+      Publix ≤15 / WF ≤50
     </label>
 
     <label>
-      <input type="checkbox" class="layer-toggle" data-layer="tier2" checked>
-      Tier 2 (Publix ≤25 / WF ≤50)
+      <input type="checkbox" class="layer-toggle" data-layer="p25wf50" checked>
+      Publix ≤25 / WF ≤50
     </label>
 
     <label>
-      <input type="checkbox" class="layer-toggle" data-layer="tier3" checked>
-      Tier 3 (Publix ≤30 / WF ≤60)
-    </label>
-
-    <label>
-      <input type="checkbox" class="layer-toggle" data-layer="tier4">
-      Publix ≤20 / WF ≤60
-    </label>
-
-    <label>
-      <input type="checkbox" class="layer-toggle" data-layer="nogopub30">
-      No-go (Publix ≥30 mi away)
+      <input type="checkbox" class="layer-toggle" data-layer="wf60">
+      Whole Foods ≤60 (any Publix)
     </label>
   </div>
 
-  <!-- version query to dodge caching -->
-  <script src="script.js?v=zones1"></script>
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- cache-busted script -->
+  <script src="script.js?v=gozones3"></script>
 </body>
-</html> 
+</html>
