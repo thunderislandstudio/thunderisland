@@ -1,102 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-DP19VT46EP"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-DP19VT46EP');
-</script>
-  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thunder Island Studio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Space+Mono&display=swap" rel="stylesheet">
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #fdfaf4;
-      color: #1c1c1c;
-      font-family: 'Space Mono', monospace;
-      height: 100%;
-      overflow-x: hidden;
-    }
+  <title>Florida Go Zones</title>
+  <link rel="stylesheet" href="style.css" />
 
-    .hero {
-      background-image: url('florida.png'); /* Replace with your photo */
-      background-size: cover;
-      background-position: center;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      position: relative;
-    }
-
-    .overlay {
-      background: rgba(0, 0, 0, 0.4);
-      color: white;
-      padding: 2rem;
-      border-radius: 12px;
-      max-width: 700px;
-      backdrop-filter: blur(6px);
-    }
-
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 3rem;
-      margin: 0 0 1rem;
-    }
-
-    p.tagline {
-      font-style: italic;
-      margin-bottom: 2rem;
-    }
-
-    .links a {
-      display: inline-block;
-      margin: 0.5rem 1rem;
-      padding: 0.75rem 1.5rem;
-      border: 2px solid white;
-      border-radius: 6px;
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    .links a:hover {
-      background: white;
-      color: #1c1c1c;
-    }
-
-    footer {
-      text-align: center;
-      padding: 2rem;
-      font-size: 0.9rem;
-      background: #f3efe4;
-      color: #555;
-    }
-  </style>
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
+
 <body>
-  <div class="hero">
-    <div class="overlay">
-      <h1>Thunder Island Studio</h1>
-      <p class="tagline">Living free and easy in the Florida sun, making things we like.</p>
-      <div class="links">
-        <a href="https://franklear.com" target="_blank">Frank Lear Designs</a>
-      </div>
-    </div>
+  <div id="map"></div>
+
+  <div id="controls">
+    <h3>Zones</h3>
+
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier1" checked>
+      Tier 1 (Publix ≤15 / WF ≤30)
+    </label>
+
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier2" checked>
+      Tier 2 (Publix ≤25 / WF ≤50)
+    </label>
+
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier3" checked>
+      Tier 3 (Publix ≤30 / WF ≤60)
+    </label>
+
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier4">
+      Publix ≤20 / WF ≤60
+    </label>
+
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="nogopub30">
+      No-go (Publix ≥30 mi away)
+    </label>
   </div>
 
-  <footer>
-    &copy; 2025 Thunder Island Studio, LLC — Somewhere between the moss and the coast.
-  </footer>
+  <!-- version query to dodge caching -->
+  <script src="script.js?v=zones1"></script>
 </body>
 </html>

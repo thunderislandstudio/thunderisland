@@ -3,75 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Florida Go Zones – Minimal Test</title>
+  <title>Florida Go Zones</title>
+  <link rel="stylesheet" href="style.css" />
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
-
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-  </style>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
+
 <body>
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <div id="controls">
+    <h3>Zones</h3>
 
-  <script>
-    window.addEventListener("load", () => {
-      console.log("Minimal map script loaded");
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier1" checked>
+      Tier 1 (Publix ≤15 / WF ≤30)
+    </label>
 
-      const map = L.map("map", {
-        zoomControl: true,
-        minZoom: 5,
-        maxZoom: 15
-      }).setView([28.4, -82.5], 6);
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier2" checked>
+      Tier 2 (Publix ≤25 / WF ≤50)
+    </label>
 
-      // Simple OSM basemap
-      L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          attribution: "&copy; OpenStreetMap contributors",
-          maxZoom: 19
-        }
-      ).addTo(map);
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier3" checked>
+      Tier 3 (Publix ≤30 / WF ≤60)
+    </label>
 
-      // Try loading ONE known-available GeoJSON file
-      const url = "data/GoZone_P25_WF50.geojson"; // adjust if your filename differs
-      fetch(url)
-        .then(res => {
-          if (!res.ok) {
-            throw new Error("HTTP " + res.status + " for " + url);
-          }
-          return res.json();
-        })
-        .then(data => {
-          console.log("Loaded GeoJSON:", url);
-          L.geoJSON(data, {
-            style: {
-              color: "#FDD023",
-              fillColor: "#FDD023",
-              fillOpacity: 0.32,
-              weight: 2
-            }
-          }).addTo(map);
-        })
-        .catch(err => {
-          console.error("Error loading GeoJSON:", err);
-        });
-    });
-  </script>
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="tier4">
+      Publix ≤20 / WF ≤60
+    </label>
+
+    <label>
+      <input type="checkbox" class="layer-toggle" data-layer="nogopub30">
+      No-go (Publix ≥30 mi away)
+    </label>
+  </div>
+
+  <!-- version query to dodge caching -->
+  <script src="script.js?v=zones1"></script>
 </body>
 </html>
