@@ -70,8 +70,9 @@ TIER3_PROVINCES = {
 # Tier 3: systemic hydrology risk overrides (prairie/basin systems)
 # Populate with exact PROVINCE names from probe_province.py output.
 TIER3_HYDRO_OVERRIDE_PROVINCES = {
-    # Example after probing (replace with your actual strings):
-    # "<<<PASTE EXACT PROVINCE NAME HERE>>>",
+	
+	"Okeechobee Plain Province",
+	"Big Cypress Province",
 }
 
 # ---------------- HELPERS ----------------

@@ -109,7 +109,7 @@ geo_t4: null,
     false
   );
 
-// ---- Geology risk tiers (v1) ----
+// ---- Geology risk tiers ----
 
 // Tier 1: least risky (green, subtle)
 loadLayer(
@@ -119,15 +119,15 @@ loadLayer(
   false
 );
 
-// Tier 2: karst caution (amber, mostly outline)
+// Tier 2: default / caution (cool neutral, very light)
 loadLayer(
   "geo_t2",
   "data/geology_tier2_union.geojson",
-  { color: "#F9A825", fillColor: "#F9A825", fillOpacity: 0.08, weight: 3 },
+  { color: "#546E7A", fillColor: "#546E7A", fillOpacity: 0.08, weight: 2 },
   false
 );
 
-// Tier 3: lowland / wet / coastal (orange, medium)
+// Tier 3: lowland / wet / coastal (orange)
 loadLayer(
   "geo_t3",
   "data/geology_tier3_union.geojson",
@@ -135,7 +135,7 @@ loadLayer(
   false
 );
 
-// Tier 4: highest risk veto (red, loud)
+// Tier 4: highest risk veto (red, louder)
 loadLayer(
   "geo_t4",
   "data/geology_tier4_union.geojson",
