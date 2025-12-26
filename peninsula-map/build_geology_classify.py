@@ -68,12 +68,16 @@ TIER3_PROVINCES = {
 }
 
 # Tier 3: systemic hydrology risk overrides (prairie/basin systems)
-# Populate with exact PROVINCE names from probe_province.py output.
 TIER3_HYDRO_OVERRIDE_PROVINCES = {
-	
+	"Hawthorne Lakes Province",
 	"Okeechobee Plain Province",
 	"Big Cypress Province",
 	"Chiefland Karst Plain Province",
+	"Perry Karst Plain Province",
+	"Caloosahahatchee Valley Province",
+	"Woodville Karst Plain Province",
+	"San Pedro Bay Province",
+	"Crystal River Karst Plain Province",
 }
 
 # ---------------- HELPERS ----------------

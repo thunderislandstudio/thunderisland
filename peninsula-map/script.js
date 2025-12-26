@@ -123,7 +123,7 @@ loadLayer(
 loadLayer(
   "geo_t2",
   "data/geology_tier2_union.geojson",
-  { color: "#546E7A", fillColor: "#546E7A", fillOpacity: 0.08, weight: 2 },
+  { color: "#546E7A", fillColor: "#546E7A", fillOpacity: 0.12, weight: 2 },
   false
 );
 
