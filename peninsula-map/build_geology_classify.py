@@ -78,6 +78,14 @@ TIER3_HYDRO_OVERRIDE_PROVINCES = {
 	"Woodville Karst Plain Province",
 	"San Pedro Bay Province",
 	"Crystal River Karst Plain Province",
+	"Upper St. Johns River Valley Province",
+	"Lower St. Johns River Valley Province",
+	"Fort McCoy Plain Province",
+	"St. Johns River Offset Province",
+	"Lake Plain Province",
+	"Tavares Lakes Province",
+	"Green Swamp Province",
+	
 }
 
 # ---------------- HELPERS ----------------
