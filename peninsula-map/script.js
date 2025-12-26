@@ -144,7 +144,7 @@ loadLayer(
 );
 
 // Address Lookup
-let addressMarker = null;
+let coordMarker = null;
 
 function setStatus(msg, isError = false) {
   const el = document.getElementById("status");
@@ -153,115 +153,69 @@ function setStatus(msg, isError = false) {
   el.style.color = isError ? "#b00020" : "";
 }
 
-async function geocodeCensus(address) {
-  const url =
-    "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress" +
-    "?benchmark=2020&format=json" +
-    "&address=" + encodeURIComponent(address);
+function parseLatLng(text) {
+  // Accept formats like:
+  // "29.64, -82.70"
+  // "29.64 -82.70"
+  // "29.64,-82.70"
+  const match = text.match(
+    /^\s*(-?\d+(\.\d+)?)\s*,?\s*(-?\d+(\.\d+)?)\s*$/
+  );
+  if (!match) throw new Error("Invalid lat/long format");
 
-  const res = await fetch(url, { headers: { "Accept": "application/json" } });
-  if (!res.ok) throw new Error(`Census HTTP ${res.status}`);
+  const lat = parseFloat(match[1]);
+  const lng = parseFloat(match[3]);
 
-  const data = await res.json();
-  const matches = data?.result?.addressMatches || [];
-  if (!matches.length) throw new Error("Census: no match");
-
-  const best = matches[0];
-  return {
-    lat: best.coordinates.y,
-    lon: best.coordinates.x,
-    display: best.matchedAddress || address,
-    source: "US Census"
-  };
-}
-
-async function geocodeNominatim(address) {
-  const url =
-    "https://nominatim.openstreetmap.org/search" +
-    "?format=json&limit=1&addressdetails=1&countrycodes=us" +
-    "&q=" + encodeURIComponent(address);
-
-  const res = await fetch(url, {
-    headers: {
-      "Accept": "application/json",
-      "User-Agent": "peninsula-map/1.0 (personal use)"
-    }
-  });
-
-  if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
-  const data = await res.json();
-  if (!data.length) throw new Error("Nominatim: no match");
-
-  return {
-    lat: parseFloat(data[0].lat),
-    lon: parseFloat(data[0].lon),
-    display: data[0].display_name || address,
-    source: "Nominatim"
-  };
-}
-
-async function geocodeAddress(raw) {
-  const cleaned = raw
-    .replace(/\s+United States\s*$/i, "")
-    .replace(/\s+USA\s*$/i, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-
-  try {
-    return await geocodeCensus(cleaned);
-  } catch (e1) {
-    console.warn("Census failed:", e1);
-    return await geocodeNominatim(cleaned);
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    throw new Error("Coordinates out of range");
   }
+
+  return { lat, lng };
 }
 
-async function plotAddress() {
-  const input = document.getElementById("addressInput");
-  const address = (input?.value || "").trim();
-  if (!address) {
-    setStatus("Paste an address first.", true);
+function plotCoordinates() {
+  const input = document.getElementById("coordInput");
+  const raw = (input?.value || "").trim();
+  if (!raw) {
+    setStatus("Paste coordinates first.", true);
     return;
   }
 
-  setStatus("Searching…");
-
   try {
-    const result = await geocodeAddress(address);
-    console.log("Geocode result:", result);
+    const { lat, lng } = parseLatLng(raw);
 
-    if (addressMarker) map.removeLayer(addressMarker);
+    if (coordMarker) map.removeLayer(coordMarker);
 
-    addressMarker = L.marker([result.lat, result.lon]).addTo(map);
-    addressMarker.bindPopup(
-      `<strong>Address</strong><br>${result.display}<br><em>${result.source}</em>`
-    ).openPopup();
+    coordMarker = L.marker([lat, lng]).addTo(map);
+    coordMarker
+      .bindPopup(`<strong>Location</strong><br>${lat}, ${lng}`)
+      .openPopup();
 
-    map.setView([result.lat, result.lon], 12);
-    setStatus(`Found: ${result.source}`);
+    map.setView([lat, lng], 13);
+    setStatus("Plotted location");
 
   } catch (err) {
-    console.error("Geocode failed:", err);
-    setStatus(`Not found: ${err.message}`, true);
-    alert(`Address not found.\n\n${err.message}`);
+    setStatus(err.message, true);
+    alert(err.message);
   }
 }
 
-function clearAddress() {
-  if (addressMarker) {
-    map.removeLayer(addressMarker);
-    addressMarker = null;
+function clearPoint() {
+  if (coordMarker) {
+    map.removeLayer(coordMarker);
+    coordMarker = null;
   }
   setStatus("");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const lookupBtn = document.getElementById("lookupBtn");
-  const clearBtn = document.getElementById("clearBtn");
+  document
+    .getElementById("plotCoordBtn")
+    .addEventListener("click", plotCoordinates);
 
-  if (!lookupBtn) console.error("lookupBtn not found in DOM");
-  else lookupBtn.addEventListener("click", plotAddress);
-
-  if (clearBtn) clearBtn.addEventListener("click", clearAddress);
+  document
+    .getElementById("clearBtn")
+    .addEventListener("click", clearPoint);
 });
 // Address Lookup
 
