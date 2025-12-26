@@ -23,20 +23,16 @@ OUT_T2_UNION = DATA_DIR / "geology_tier2_union.geojson"
 OUT_T3_UNION = DATA_DIR / "geology_tier3_union.geojson"
 OUT_T4_UNION = DATA_DIR / "geology_tier4_union.geojson"
 
-# ---- Districts that are broadly “upland-ish” in the classic Florida sense
+# Districts that are broadly “upland-ish”
 HIGHLAND_DISTRICTS = {
     "Northern Highlands District",
     "Central Highlands District",
     "Lakes District",
 }
 
-# ---- Regexes for province name cues
+# Regex cues (kept intentionally blunt; you will tune by observing the output)
+RE_UPLAND_CUE = re.compile(r"\b(ridge|highlands|hills|upland)\b", re.IGNORECASE)
 RE_KARST = re.compile(r"\bkarst\b", re.IGNORECASE)
-
-RE_UPLAND_CUE = re.compile(
-    r"\b(ridge|highlands|hills|upland)\b",
-    re.IGNORECASE
-)
 
 RE_T4_CUE = re.compile(
     r"\b(keys?|everglades|big\s*cypress|ten\s*thousand\s*islands|florida\s*bay|barrier)\b",
@@ -44,12 +40,11 @@ RE_T4_CUE = re.compile(
 )
 
 RE_T3_CUE = re.compile(
-    r"\b(coastal|lowlands?|swamp|strand|marsh|bay|lagoon|river|delta|terrace|flatwoods)\b",
+    r"\b(coastal|lowlands?|swamp|strand|marsh|lagoon|terrace|flatwoods)\b",
     re.IGNORECASE
 )
 
-# ---- Hard Tier 4 province names (override list)
-# Tune this after you see the first map.
+# Tier 4: hard veto systems (explicit)
 TIER4_PROVINCES = {
     "Everglades Province",
     "Big Cypress Province",
@@ -58,13 +53,11 @@ TIER4_PROVINCES = {
     "Upper Keys Province",
     "Middle Keys Province",
     "Lower Keys Province",
-    # Some datasets use variations — the regex catches most of it anyway.
     "Barrier Islands Province",
     "Barrier Island Province",
 }
 
-# ---- Tier 3 explicit province names (coastal/lowland/wet headaches)
-# Again: tune after first pass.
+# Tier 3: coastal/lowland/wet headaches (explicit)
 TIER3_PROVINCES = {
     "Peninsular Coastal Lowlands Province",
     "Panhandle Coastal Lowlands Province",
@@ -72,6 +65,13 @@ TIER3_PROVINCES = {
     "Sea Islands Province",
     "Coastal Strand Province",
     "Coastal Swamps Province",
+}
+
+# Tier 3: systemic hydrology risk overrides (prairie/basin systems)
+# Populate with exact PROVINCE names from probe_province.py output.
+TIER3_HYDRO_OVERRIDE_PROVINCES = {
+    # Example after probing (replace with your actual strings):
+    # "<<<PASTE EXACT PROVINCE NAME HERE>>>",
 }
 
 # ---------------- HELPERS ----------------
@@ -112,35 +112,38 @@ def get_district(feature: dict) -> str:
 
 # ---------------- CLASSIFICATION ----------------
 
-def classify(feature: dict) -> int | None:
+def classify(feature: dict) -> int:
     """
-    Returns tier number 1..4 (1 least risky, 4 most risky), or None if unclassified.
+    Returns tier number 1..4 (1 least risky, 4 most risky).
     Priority: 4 overrides all, then 3, then 2, then 1.
+    NOTE: Anything not matching an explicit tier becomes Tier 2 by default.
     """
     name = get_name(feature)
     district = get_district(feature)
 
-    if not name:
-        return None
-
-    # Tier 4: hard veto systems
+    # Tier 4: hard veto
     if name in TIER4_PROVINCES or RE_T4_CUE.search(name):
         return 4
 
-    # Tier 3: coastal/lowland/wet/flat
+    # Tier 3: coastal/lowland/wet
     if name in TIER3_PROVINCES or RE_T3_CUE.search(name):
         return 3
 
-    # Tier 2: karst caution (this is where Gainesville/Alachua should live)
-    # If a province says Karst explicitly, it’s Tier 2 unless it already got bumped to 3/4 above.
-    if RE_KARST.search(name):
-        return 2
+    # Tier 3: explicit hydrology risk overrides (Kissimmee Prairie/basin etc.)
+    if name in TIER3_HYDRO_OVERRIDE_PROVINCES:
+        return 3
 
-    # Tier 1: upland-ish / ridge-ish candidates
+    # Tier 1: “earned” stable-ish upland/ridge candidates
+    # (We put this BEFORE Tier 2 default so it actually wins.)
     if district in HIGHLAND_DISTRICTS or RE_UPLAND_CUE.search(name):
+        # BUT: if it’s explicitly Karst, don’t auto-bless it as Tier 1
+        # (karst uplands are still caution)
+        if RE_KARST.search(name):
+            return 2
         return 1
 
-    return None
+    # Tier 2: default interior Florida condition (caution by default, not optimism)
+    return 2
 
 # ---------------- MAIN ----------------
 
@@ -152,8 +155,6 @@ def main():
 
     t1_feats, t2_feats, t3_feats, t4_feats = [], [], [], []
     t1_geoms, t2_geoms, t3_geoms, t4_geoms = [], [], [], []
-
-    unclassified = 0
 
     for f in feats:
         if not f.get("geometry"):
@@ -171,7 +172,8 @@ def main():
         elif tier == 1:
             t1_feats.append(f); t1_geoms.append(g)
         else:
-            unclassified += 1
+            # Should never happen; classify() returns 1..4
+            t2_feats.append(f); t2_geoms.append(g)
 
     # Debug feature layers
     write_fc(OUT_T1_FEATURES, t1_feats)
@@ -181,16 +183,15 @@ def main():
 
     # Union overlays
     write_union(OUT_T1_UNION, t1_geoms, {"tier": 1, "label": "Least risky"})
-    write_union(OUT_T2_UNION, t2_geoms, {"tier": 2, "label": "Karst caution"})
-    write_union(OUT_T3_UNION, t3_geoms, {"tier": 3, "label": "Lowland / coastal / wet"})
+    write_union(OUT_T2_UNION, t2_geoms, {"tier": 2, "label": "Default / caution"})
+    write_union(OUT_T3_UNION, t3_geoms, {"tier": 3, "label": "Lowland/wet/coastal + hydro override"})
     write_union(OUT_T4_UNION, t4_geoms, {"tier": 4, "label": "Highest risk veto"})
 
     print("\nCounts:")
     print(f"  Tier 1 (least risky): {len(t1_feats)}")
-    print(f"  Tier 2 (karst):       {len(t2_feats)}")
+    print(f"  Tier 2 (default):     {len(t2_feats)}")
     print(f"  Tier 3 (lowland):     {len(t3_feats)}")
     print(f"  Tier 4 (veto):        {len(t4_feats)}")
-    print(f"  Unclassified:         {unclassified}")
     print("\nDone.")
 
 if __name__ == "__main__":
