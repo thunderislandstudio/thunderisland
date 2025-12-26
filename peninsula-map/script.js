@@ -144,19 +144,27 @@ loadLayer(
 );
 
 // Address Lookup
+let addressMarker = null;
+
+function setStatus(msg, isError = false) {
+  const el = document.getElementById("status");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isError ? "#b00020" : "";
+}
+
 async function geocodeCensus(address) {
   const url =
     "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress" +
-    "?benchmark=2020" +
-    "&format=json" +
+    "?benchmark=2020&format=json" +
     "&address=" + encodeURIComponent(address);
 
   const res = await fetch(url, { headers: { "Accept": "application/json" } });
-  if (!res.ok) throw new Error("Census geocoder request failed");
+  if (!res.ok) throw new Error(`Census HTTP ${res.status}`);
 
   const data = await res.json();
   const matches = data?.result?.addressMatches || [];
-  if (!matches.length) throw new Error("No Census match");
+  if (!matches.length) throw new Error("Census: no match");
 
   const best = matches[0];
   return {
@@ -170,21 +178,19 @@ async function geocodeCensus(address) {
 async function geocodeNominatim(address) {
   const url =
     "https://nominatim.openstreetmap.org/search" +
-    "?format=json&limit=1&addressdetails=1" +
-    "&countrycodes=us" +
+    "?format=json&limit=1&addressdetails=1&countrycodes=us" +
     "&q=" + encodeURIComponent(address);
 
   const res = await fetch(url, {
     headers: {
       "Accept": "application/json",
-      // Don't pretend this is a browser default—Nominatim wants an identifying UA.
       "User-Agent": "peninsula-map/1.0 (personal use)"
     }
   });
 
-  if (!res.ok) throw new Error("Nominatim request failed");
+  if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
   const data = await res.json();
-  if (!data.length) throw new Error("No Nominatim match");
+  if (!data.length) throw new Error("Nominatim: no match");
 
   return {
     lat: parseFloat(data[0].lat),
@@ -194,20 +200,69 @@ async function geocodeNominatim(address) {
   };
 }
 
-async function geocodeAddress(address) {
-  // Clean common Zillow/clipboard junk
-  const cleaned = address
+async function geocodeAddress(raw) {
+  const cleaned = raw
     .replace(/\s+United States\s*$/i, "")
     .replace(/\s+USA\s*$/i, "")
+    .replace(/\s{2,}/g, " ")
     .trim();
 
   try {
     return await geocodeCensus(cleaned);
-  } catch (e) {
-    // Fallback if Census misses (it does sometimes with weird formats/new builds)
+  } catch (e1) {
+    console.warn("Census failed:", e1);
     return await geocodeNominatim(cleaned);
   }
 }
+
+async function plotAddress() {
+  const input = document.getElementById("addressInput");
+  const address = (input?.value || "").trim();
+  if (!address) {
+    setStatus("Paste an address first.", true);
+    return;
+  }
+
+  setStatus("Searching…");
+
+  try {
+    const result = await geocodeAddress(address);
+    console.log("Geocode result:", result);
+
+    if (addressMarker) map.removeLayer(addressMarker);
+
+    addressMarker = L.marker([result.lat, result.lon]).addTo(map);
+    addressMarker.bindPopup(
+      `<strong>Address</strong><br>${result.display}<br><em>${result.source}</em>`
+    ).openPopup();
+
+    map.setView([result.lat, result.lon], 12);
+    setStatus(`Found: ${result.source}`);
+
+  } catch (err) {
+    console.error("Geocode failed:", err);
+    setStatus(`Not found: ${err.message}`, true);
+    alert(`Address not found.\n\n${err.message}`);
+  }
+}
+
+function clearAddress() {
+  if (addressMarker) {
+    map.removeLayer(addressMarker);
+    addressMarker = null;
+  }
+  setStatus("");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const lookupBtn = document.getElementById("lookupBtn");
+  const clearBtn = document.getElementById("clearBtn");
+
+  if (!lookupBtn) console.error("lookupBtn not found in DOM");
+  else lookupBtn.addEventListener("click", plotAddress);
+
+  if (clearBtn) clearBtn.addEventListener("click", clearAddress);
+});
 // Address Lookup
 
   // Checkbox handlers
