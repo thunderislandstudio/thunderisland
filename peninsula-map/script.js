@@ -143,10 +143,6 @@ loadLayer(
   false
 );
 
-const cb = document.querySelector(`.layer-toggle[data-layer="${key}"]`);
-if (cb && cb.checked) {
-  layer.addTo(map);
-}
 
   // Checkbox handlers
   document.querySelectorAll(".layer-toggle").forEach((cb) => {
