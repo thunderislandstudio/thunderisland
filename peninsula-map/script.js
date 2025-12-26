@@ -67,7 +67,7 @@ geo_t4: null,
       fillOpacity: 0.5,
       weight: 2
     },
-    true
+    false
   );
 
   // Publix ≤25 mi (slightly lighter purple)
@@ -80,7 +80,7 @@ geo_t4: null,
       fillOpacity: 0.3,
       weight: 2
     },
-    true
+    false
   );
 
   // Whole Foods ≤30 mi

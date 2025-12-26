@@ -73,6 +73,7 @@ TIER3_HYDRO_OVERRIDE_PROVINCES = {
 	
 	"Okeechobee Plain Province",
 	"Big Cypress Province",
+	"Chiefland Karst Plain Province",
 }
 
 # ---------------- HELPERS ----------------
