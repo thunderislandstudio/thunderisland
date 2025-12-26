@@ -143,70 +143,72 @@ loadLayer(
   false
 );
 
-let addressMarker = null;
+// Address Lookup
+async function geocodeCensus(address) {
+  const url =
+    "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress" +
+    "?benchmark=2020" +
+    "&format=json" +
+    "&address=" + encodeURIComponent(address);
 
-async function geocodeAddress(address) {
+  const res = await fetch(url, { headers: { "Accept": "application/json" } });
+  if (!res.ok) throw new Error("Census geocoder request failed");
+
+  const data = await res.json();
+  const matches = data?.result?.addressMatches || [];
+  if (!matches.length) throw new Error("No Census match");
+
+  const best = matches[0];
+  return {
+    lat: best.coordinates.y,
+    lon: best.coordinates.x,
+    display: best.matchedAddress || address,
+    source: "US Census"
+  };
+}
+
+async function geocodeNominatim(address) {
   const url =
     "https://nominatim.openstreetmap.org/search" +
-    "?format=json" +
-    "&limit=1" +
-    "&addressdetails=1" +
+    "?format=json&limit=1&addressdetails=1" +
+    "&countrycodes=us" +
     "&q=" + encodeURIComponent(address);
 
-  const response = await fetch(url, {
+  const res = await fetch(url, {
     headers: {
       "Accept": "application/json",
+      // Don't pretend this is a browser default—Nominatim wants an identifying UA.
       "User-Agent": "peninsula-map/1.0 (personal use)"
     }
   });
 
-  if (!response.ok) {
-    throw new Error("Geocoding failed");
-  }
-
-  const data = await response.json();
-  if (!data.length) {
-    throw new Error("Address not found");
-  }
+  if (!res.ok) throw new Error("Nominatim request failed");
+  const data = await res.json();
+  if (!data.length) throw new Error("No Nominatim match");
 
   return {
     lat: parseFloat(data[0].lat),
     lon: parseFloat(data[0].lon),
-    display: data[0].display_name
+    display: data[0].display_name || address,
+    source: "Nominatim"
   };
 }
 
-async function plotAddress() {
-  const input = document.getElementById("addressInput");
-  const address = input.value.trim();
-  if (!address) return;
+async function geocodeAddress(address) {
+  // Clean common Zillow/clipboard junk
+  const cleaned = address
+    .replace(/\s+United States\s*$/i, "")
+    .replace(/\s+USA\s*$/i, "")
+    .trim();
 
   try {
-    const result = await geocodeAddress(address);
-
-    if (addressMarker) {
-      map.removeLayer(addressMarker);
-    }
-
-    addressMarker = L.marker([result.lat, result.lon], {
-      draggable: false
-    }).addTo(map);
-
-    addressMarker.bindPopup(
-      `<strong>Selected Address</strong><br>${result.display}`
-    ).openPopup();
-
-    map.setView([result.lat, result.lon], 12);
-
-  } catch (err) {
-    alert(err.message);
+    return await geocodeCensus(cleaned);
+  } catch (e) {
+    // Fallback if Census misses (it does sometimes with weird formats/new builds)
+    return await geocodeNominatim(cleaned);
   }
 }
-
-document
-  .getElementById("lookupBtn")
-  .addEventListener("click", plotAddress);
-
+// Address Lookup
 
   // Checkbox handlers
   document.querySelectorAll(".layer-toggle").forEach((cb) => {
