@@ -22,9 +22,10 @@ const layers = {
   publix25: null,
   wf30: null,
   wf50: null,
-  geo_upland: null,
-  geo_karst: null,
-  geo_lowland: null
+geo_t1: null,
+geo_t2: null,
+geo_t3: null,
+geo_t4: null,
 };
 
   // Colors
@@ -108,44 +109,44 @@ const layers = {
     false
   );
 
-// Geology: upland / ridge (subtle green, low opacity)
+// ---- Geology risk tiers (v1) ----
+
+// Tier 1: least risky (green, subtle)
 loadLayer(
-  "geo_upland",
-  "data/geology_upland_union.geojson",
-  {
-    color: "#2E7D32",
-    fillColor: "#2E7D32",
-    fillOpacity: 0.12,
-    weight: 2
-  },
+  "geo_t1",
+  "data/geology_tier1_union.geojson",
+  { color: "#2E7D32", fillColor: "#2E7D32", fillOpacity: 0.12, weight: 2 },
   false
 );
 
-// Geology: karst caution (amber)
+// Tier 2: karst caution (amber, mostly outline)
 loadLayer(
-  "geo_karst",
-  "data/geology_karst_union.geojson",
-  {
-    color: "#F9A825",
-    fillColor: "#F9A825",
-    fillOpacity: 0.22,
-    weight: 2
-  },
+  "geo_t2",
+  "data/geology_tier2_union.geojson",
+  { color: "#F9A825", fillColor: "#F9A825", fillOpacity: 0.08, weight: 3 },
   false
 );
 
-// Geology: lowland / coastal no-go (red, louder)
+// Tier 3: lowland / wet / coastal (orange, medium)
 loadLayer(
-  "geo_lowland",
-  "data/geology_lowland_union.geojson",
-  {
-    color: "#C62828",
-    fillColor: "#C62828",
-    fillOpacity: 0.35,
-    weight: 2
-  },
+  "geo_t3",
+  "data/geology_tier3_union.geojson",
+  { color: "#EF6C00", fillColor: "#EF6C00", fillOpacity: 0.22, weight: 2 },
   false
 );
+
+// Tier 4: highest risk veto (red, loud)
+loadLayer(
+  "geo_t4",
+  "data/geology_tier4_union.geojson",
+  { color: "#C62828", fillColor: "#C62828", fillOpacity: 0.35, weight: 2 },
+  false
+);
+
+const cb = document.querySelector(`.layer-toggle[data-layer="${key}"]`);
+if (cb && cb.checked) {
+  layer.addTo(map);
+}
 
   // Checkbox handlers
   document.querySelectorAll(".layer-toggle").forEach((cb) => {
