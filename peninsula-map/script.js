@@ -143,6 +143,70 @@ loadLayer(
   false
 );
 
+let addressMarker = null;
+
+async function geocodeAddress(address) {
+  const url =
+    "https://nominatim.openstreetmap.org/search" +
+    "?format=json" +
+    "&limit=1" +
+    "&addressdetails=1" +
+    "&q=" + encodeURIComponent(address);
+
+  const response = await fetch(url, {
+    headers: {
+      "Accept": "application/json",
+      "User-Agent": "peninsula-map/1.0 (personal use)"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Geocoding failed");
+  }
+
+  const data = await response.json();
+  if (!data.length) {
+    throw new Error("Address not found");
+  }
+
+  return {
+    lat: parseFloat(data[0].lat),
+    lon: parseFloat(data[0].lon),
+    display: data[0].display_name
+  };
+}
+
+async function plotAddress() {
+  const input = document.getElementById("addressInput");
+  const address = input.value.trim();
+  if (!address) return;
+
+  try {
+    const result = await geocodeAddress(address);
+
+    if (addressMarker) {
+      map.removeLayer(addressMarker);
+    }
+
+    addressMarker = L.marker([result.lat, result.lon], {
+      draggable: false
+    }).addTo(map);
+
+    addressMarker.bindPopup(
+      `<strong>Selected Address</strong><br>${result.display}`
+    ).openPopup();
+
+    map.setView([result.lat, result.lon], 12);
+
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+document
+  .getElementById("lookupBtn")
+  .addEventListener("click", plotAddress);
+
 
   // Checkbox handlers
   document.querySelectorAll(".layer-toggle").forEach((cb) => {
