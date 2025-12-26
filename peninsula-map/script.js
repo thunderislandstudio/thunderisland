@@ -17,12 +17,15 @@ window.addEventListener("load", () => {
   }).addTo(map);
 
   // Layers registry
-  const layers = {
-    publix15: null,
-    publix25: null,
-    wf30: null,
-    wf50: null
-  };
+const layers = {
+  publix15: null,
+  publix25: null,
+  wf30: null,
+  wf50: null,
+  geo_upland: null,
+  geo_karst: null,
+  geo_lowland: null
+};
 
   // Colors
   const LSU_PURPLE = "#461D7C";
@@ -104,6 +107,45 @@ window.addEventListener("load", () => {
     },
     false
   );
+
+// Geology: upland / ridge (subtle green, low opacity)
+loadLayer(
+  "geo_upland",
+  "data/geology_upland_union.geojson",
+  {
+    color: "#2E7D32",
+    fillColor: "#2E7D32",
+    fillOpacity: 0.12,
+    weight: 2
+  },
+  false
+);
+
+// Geology: karst caution (amber)
+loadLayer(
+  "geo_karst",
+  "data/geology_karst_union.geojson",
+  {
+    color: "#F9A825",
+    fillColor: "#F9A825",
+    fillOpacity: 0.22,
+    weight: 2
+  },
+  false
+);
+
+// Geology: lowland / coastal no-go (red, louder)
+loadLayer(
+  "geo_lowland",
+  "data/geology_lowland_union.geojson",
+  {
+    color: "#C62828",
+    fillColor: "#C62828",
+    fillOpacity: 0.35,
+    weight: 2
+  },
+  false
+);
 
   // Checkbox handlers
   document.querySelectorAll(".layer-toggle").forEach((cb) => {
