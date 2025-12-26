@@ -115,7 +115,7 @@ geo_t4: null,
 loadLayer(
   "geo_t1",
   "data/geology_tier1_union.geojson",
-  { color: "#2E7D32", fillColor: "#2E7D32", fillOpacity: 0.12, weight: 2 },
+  { color: "#2E7D32", fillColor: "#2E7D32", fillOpacity: 0.32, weight: 3 },
   false
 );
 
@@ -123,7 +123,7 @@ loadLayer(
 loadLayer(
   "geo_t2",
   "data/geology_tier2_union.geojson",
-  { color: "#546E7A", fillColor: "#546E7A", fillOpacity: 0.12, weight: 2 },
+  { color: "#546E7A", fillColor: "#546E7A", fillOpacity: 0.32, weight: 2 },
   false
 );
 
