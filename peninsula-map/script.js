@@ -154,68 +154,79 @@ function setStatus(msg, isError = false) {
 }
 
 function parseLatLng(text) {
-  // Accept formats like:
-  // "29.64, -82.70"
-  // "29.64 -82.70"
-  // "29.64,-82.70"
-  const match = text.match(
-    /^\s*(-?\d+(\.\d+)?)\s*,?\s*(-?\d+(\.\d+)?)\s*$/
-  );
-  if (!match) throw new Error("Invalid lat/long format");
+  const match = text.match(/^\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/);
+  if (!match) throw new Error("Paste as: lat, lng (comma required)");
 
-  const lat = parseFloat(match[1]);
-  const lng = parseFloat(match[3]);
+  const lat = Number(match[1]);
+  const lng = Number(match[3]);
 
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    throw new Error("Coordinates out of range");
-  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error("Not valid numbers");
+  if (lat < -90 || lat > 90) throw new Error("Latitude out of range");
+  if (lng < -180 || lng > 180) throw new Error("Longitude out of range");
 
   return { lat, lng };
 }
 
 function plotCoordinates() {
-  const input = document.getElementById("coordInput");
-  const raw = (input?.value || "").trim();
-  if (!raw) {
-    setStatus("Paste coordinates first.", true);
-    return;
-  }
-
   try {
+    if (typeof map === "undefined" || !map) {
+      setStatus("Map object not ready yet (map is undefined).", true);
+      console.error("map is undefined or not initialized yet");
+      return;
+    }
+
+    const raw = (document.getElementById("coordInput")?.value || "").trim();
+    if (!raw) {
+      setStatus("Paste coordinates first.", true);
+      return;
+    }
+
     const { lat, lng } = parseLatLng(raw);
 
     if (coordMarker) map.removeLayer(coordMarker);
-
     coordMarker = L.marker([lat, lng]).addTo(map);
-    coordMarker
-      .bindPopup(`<strong>Location</strong><br>${lat}, ${lng}`)
-      .openPopup();
+    coordMarker.bindPopup(`<strong>Location</strong><br>${lat}, ${lng}`).openPopup();
 
     map.setView([lat, lng], 13);
     setStatus("Plotted location");
-
   } catch (err) {
+    console.error(err);
     setStatus(err.message, true);
     alert(err.message);
   }
 }
 
 function clearPoint() {
-  if (coordMarker) {
-    map.removeLayer(coordMarker);
-    coordMarker = null;
+  try {
+    if (typeof map === "undefined" || !map) {
+      setStatus("Map object not ready yet (map is undefined).", true);
+      console.error("map is undefined or not initialized yet");
+      return;
+    }
+
+    if (coordMarker) {
+      map.removeLayer(coordMarker);
+      coordMarker = null;
+    }
+    setStatus("Cleared");
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message, true);
   }
-  setStatus("");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  document
-    .getElementById("plotCoordBtn")
-    .addEventListener("click", plotCoordinates);
+// Attach listeners after everything is loaded
+window.addEventListener("load", () => {
+  const plotBtn = document.getElementById("plotCoordBtn");
+  const clearBtn = document.getElementById("clearBtn");
 
-  document
-    .getElementById("clearBtn")
-    .addEventListener("click", clearPoint);
+  if (!plotBtn) console.error("plotCoordBtn not found in DOM");
+  if (!clearBtn) console.error("clearBtn not found in DOM");
+
+  plotBtn?.addEventListener("click", plotCoordinates);
+  clearBtn?.addEventListener("click", clearPoint);
+
+  setStatus("Ready");
 });
 // Address Lookup
 
